@@ -67,3 +67,66 @@ final class AnimatedDashEdgePainter<N extends NodeBase, E extends EdgeBase<N>>
     canvas.drawPath(path, paint);
   }
 }
+
+@immutable
+class AnimatedHighlightedEdgePainter<N extends NodeBase, E extends EdgeBase<N>>
+    implements AnimatedEdgePainter<N, E> {
+  const AnimatedHighlightedEdgePainter({
+    required this.animation,
+    this.thickness = 4.0,
+    this.color = Colors.grey,
+    this.highlightColor = Colors.black,
+    this.highlightWidthFactor = 0.3,
+  });
+
+  final double thickness;
+  final Color color;
+  final Color highlightColor;
+  final double highlightWidthFactor;
+  final Animation<double> animation;
+
+  @override
+  void paint(
+    Canvas canvas,
+    E edge,
+    Offset sourcePosition,
+    Offset destinationPosition,
+  ) {
+    final paint = Paint()
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke
+      ..shader = _createGradientShader(sourcePosition, destinationPosition);
+
+    final path = Path()
+      ..moveTo(sourcePosition.dx, sourcePosition.dy)
+      ..lineTo(destinationPosition.dx, destinationPosition.dy);
+
+    canvas.drawPath(path, paint);
+  }
+
+  Shader _createGradientShader(Offset sourcePosition, Offset destinationPosition) {
+    final highlightCenter = animation.value;
+    final highlightStart = (highlightCenter - highlightWidthFactor / 2).clamp(0.0, 1.0);
+    final highlightEnd = (highlightCenter + highlightWidthFactor / 2).clamp(0.0, 1.0);
+
+    final direction = destinationPosition - sourcePosition;
+    final length = direction.distance;
+    final normalizedDirection = Offset(direction.dx / length, direction.dy / length);
+
+    // Convert to Alignment, considering that Alignment(0,0) is the center of the canvas
+    final start = Alignment(-normalizedDirection.dx, -normalizedDirection.dy);
+    final end = Alignment(normalizedDirection.dx, normalizedDirection.dy);
+
+    return LinearGradient(
+      begin: start,
+      end: end,
+      colors: [color, highlightColor, color],
+      stops: [highlightStart, highlightCenter, highlightEnd],
+    ).createShader(Rect.fromPoints(sourcePosition, destinationPosition));
+  }
+
+
+
+
+
+}

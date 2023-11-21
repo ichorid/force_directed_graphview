@@ -9,9 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:force_directed_graphview/force_directed_graphview.dart';
 
 class AnimatedEdgesDemoScreen extends StatefulWidget {
-  const AnimatedEdgesDemoScreen({
-    super.key,
-  });
+  const AnimatedEdgesDemoScreen({super.key,});
 
   @override
   AnimatedEdgesDemoScreenState createState() => AnimatedEdgesDemoScreenState();
@@ -23,7 +21,7 @@ class AnimatedEdgesDemoScreenState extends State<AnimatedEdgesDemoScreen>
 
   late final _animationController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 500),
+    duration: const Duration(milliseconds: 3000),
   )..repeat();
 
   Set<Node<User>> get _nodes => _controller.nodes;
@@ -82,7 +80,7 @@ class AnimatedEdgesDemoScreenState extends State<AnimatedEdgesDemoScreen>
           GraphView<Node<User>, Edge<Node<User>, int>>(
             controller: _controller,
             canvasSize: const GraphCanvasSize.proportional(50),
-            edgePainter: AnimatedDashEdgePainter(
+            edgePainter: AnimatedHighlightedEdgePainter(
               thickness: 2,
               animation: _animationController,
             ),
