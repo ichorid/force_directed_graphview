@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:force_directed_graphview/force_directed_graphview.dart';
 
@@ -76,7 +78,7 @@ class AnimatedHighlightedEdgePainter<N extends NodeBase, E extends EdgeBase<N>>
     this.thickness = 4.0,
     this.color = Colors.grey,
     this.highlightColor = Colors.black,
-    this.highlightWidthFactor = 0.3,
+    this.highlightWidthFactor = 0.1,
   });
 
   final double thickness;
@@ -97,21 +99,20 @@ class AnimatedHighlightedEdgePainter<N extends NodeBase, E extends EdgeBase<N>>
       ..style = PaintingStyle.stroke
       ..shader = _createGradientShader(sourcePosition, destinationPosition);
 
-    final path = Path()
-      ..moveTo(sourcePosition.dx, sourcePosition.dy)
-      ..lineTo(destinationPosition.dx, destinationPosition.dy);
-
-    canvas.drawPath(path, paint);
+    canvas.drawLine(sourcePosition, destinationPosition, paint);
   }
 
-  Shader _createGradientShader(Offset sourcePosition, Offset destinationPosition) {
-    final highlightCenter = animation.value;
-    final highlightStart = (highlightCenter - highlightWidthFactor / 2).clamp(0.0, 1.0);
-    final highlightEnd = (highlightCenter + highlightWidthFactor / 2).clamp(0.0, 1.0);
+  Shader _createGradientShader(
+      Offset sourcePosition, Offset destinationPosition) {
+    final hr = highlightWidthFactor / 2; // Highlight radius
+    final highlightCenter = animation.value * (1.0 + hr * 2) - hr;
+    final highlightStart = highlightCenter - hr;
+    final highlightEnd = highlightCenter + hr;
 
     final direction = destinationPosition - sourcePosition;
-    final length = direction.distance;
-    final normalizedDirection = Offset(direction.dx / length, direction.dy / length);
+    final biggerDimLength = max(direction.dx.abs(), direction.dy.abs());
+    final normalizedDirection =
+        Offset(direction.dx / biggerDimLength, direction.dy / biggerDimLength);
 
     // Convert to Alignment, considering that Alignment(0,0) is the center of the canvas
     final start = Alignment(-normalizedDirection.dx, -normalizedDirection.dy);
@@ -121,12 +122,11 @@ class AnimatedHighlightedEdgePainter<N extends NodeBase, E extends EdgeBase<N>>
       begin: start,
       end: end,
       colors: [color, highlightColor, color],
-      stops: [highlightStart, highlightCenter, highlightEnd],
+      stops: [
+        highlightStart.clamp(0.0, 1.0),
+        highlightCenter.clamp(0.0, 1.0),
+        highlightEnd.clamp(0.0, 1.0)
+      ],
     ).createShader(Rect.fromPoints(sourcePosition, destinationPosition));
   }
-
-
-
-
-
 }

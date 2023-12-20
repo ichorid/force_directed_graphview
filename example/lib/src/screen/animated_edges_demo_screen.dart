@@ -33,31 +33,28 @@ class AnimatedEdgesDemoScreenState extends State<AnimatedEdgesDemoScreen>
     super.initState();
 
     _controller.mutate((mutator) {
-      const nodeCount = 50;
-      for (var i = 0; i < nodeCount; i++) {
-        final size = i + 20;
 
-        final user = User.generate();
+      final node1 = Node(
+        data: User.generate(),
+        size: 20.toDouble(),
+      );
+      final node2 = Node(
+        data: User.generate(),
+        size: 20.toDouble(),
+      );
 
-        final node = Node(
-          data: user,
-          size: size.toDouble(),
-        );
+      mutator.addNode(node1);
+      mutator.addNode(node2);
+      _controller.setPinned(node1, true);
+      _controller.setPinned(node2, true);
+      mutator.addEdge(
+        Edge(
+          source: node1,
+          destination: node2,
+          data: random.integer(255, min: 100),
+        ),
+      );
 
-        mutator.addNode(node);
-
-        for (final other in _nodes) {
-          if (other != node && _random.nextInt(nodeCount + 40 - size) == 0) {
-            mutator.addEdge(
-              Edge(
-                source: node,
-                destination: other,
-                data: random.integer(255, min: 100),
-              ),
-            );
-          }
-        }
-      }
     });
   }
 
@@ -81,11 +78,11 @@ class AnimatedEdgesDemoScreenState extends State<AnimatedEdgesDemoScreen>
             controller: _controller,
             canvasSize: const GraphCanvasSize.proportional(50),
             edgePainter: AnimatedHighlightedEdgePainter(
-              thickness: 2,
+              thickness: 60,
               animation: _animationController,
             ),
             layoutAlgorithm: FruchtermanReingoldAlgorithm(
-              iterations: 500,
+              iterations: 1500,
               showIterations: true,
               initialPositionExtractor: (node, canvasSize) {
                 if (node.pinned) {
